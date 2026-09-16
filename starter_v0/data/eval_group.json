@@ -1,7 +1,299 @@
 {
   "dataset_id": "day04_v3_helpdesk_group",
   "dataset_role": "group",
-  "description": "Template intentionally left empty. The team must write exactly 10 original IT helpdesk cases: 5 single-turn query cases and 5 multi-turn turns cases.",
-  "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "description": "Original IT helpdesk evaluation suite authored by Tran Tuan Tu: 5 single-turn and 5 multi-turn test cases covering routing, parameter extraction, clarification, cancellation, and safety confirmation.",
+  "allowed_failure_types": [
+    "wrong_tool",
+    "wrong_arg_value",
+    "wrong_boundary",
+    "unnecessary_tool",
+    "out_of_scope",
+    "missing_info"
+  ],
+  "cases": [
+    {
+      "id": "G01_sso_status_staging",
+      "phase": "B",
+      "suite": "group",
+      "query": "Hệ thống đăng nhập một lần SSO trên môi trường staging hiện có bình thường không?",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "check_service_status",
+            "args": {
+              "service": "sso",
+              "environment": "staging"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "service_status_staging",
+        "difficulty": "medium",
+        "what_it_tests": "Route dung check_service_status va trich xuat service=sso cung environment=staging."
+      }
+    },
+    {
+      "id": "G02_missing_asset_wifi",
+      "phase": "B",
+      "suite": "group",
+      "query": "Laptop của mình bị ngắt kết nối Wi-Fi liên tục, kiểm tra giúp mình với.",
+      "failure_type": "missing_info",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "text"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "clarify_missing_asset",
+        "difficulty": "medium",
+        "what_it_tests": "Thieu ma thiet bi asset_id bat buoc phai goi clarify hoi lai nguoi dung."
+      }
+    },
+    {
+      "id": "G03_policy_data_privacy",
+      "phase": "B",
+      "suite": "group",
+      "query": "Chính sách nội bộ công ty quy định thế nào về quyền riêng tư và xử lý dữ liệu khách hàng?",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "policy",
+            "args": {
+              "policy_area": "data_privacy"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "policy_routing",
+        "difficulty": "medium",
+        "what_it_tests": "Cau hoi ve quy dinh noi bo phai route vao tool policy voi policy_area phu hop."
+      }
+    },
+    {
+      "id": "G04_out_of_scope_weather",
+      "phase": "B",
+      "suite": "group",
+      "query": "Dự báo thời tiết Hà Nội hôm nay mưa hay nắng để mình chuẩn bị đồ?",
+      "failure_type": "out_of_scope",
+      "expect": {
+        "no_tool": true,
+        "behavior": "refuse"
+      },
+      "metadata": {
+        "skill": "out_of_scope_rejection",
+        "difficulty": "easy",
+        "what_it_tests": "Yeu cau hoan toan ngoai pham vi IT Helpdesk khong duoc goi bat ky tool nao."
+      }
+    },
+    {
+      "id": "G05_confirm_before_ticket_printer",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tạo ticket khẩn cấp mức critical cho máy in PR-404 bị kẹt giấy và rò mực.",
+      "failure_type": "wrong_boundary",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "yes_no"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "ticket_pre_confirmation",
+        "difficulty": "medium",
+        "what_it_tests": "Tao ticket la write action phai yeu cau xac nhan yes_no truoc khi ghi du lieu."
+      }
+    },
+    {
+      "id": "GM01_clarify_then_inspect",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Kiểm tra phần cứng laptop của mình xem có bị lỗi RAM không."
+        },
+        {
+          "role": "user",
+          "content": "Mã tài sản của mình là LT-204."
+        },
+        {
+          "role": "user",
+          "content": "Chỉ kiểm tra phần cứng hardware trên đúng máy đó nhé."
+        }
+      ],
+      "failure_type": "missing_info",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "inspect_device",
+            "args": {
+              "asset_id": "LT-204",
+              "check": "hardware"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_carry_asset_and_check",
+        "difficulty": "hard",
+        "what_it_tests": "Giu ma asset tu luot bo sung thong tin va thuc hien kiem tra dung check=hardware."
+      }
+    },
+    {
+      "id": "GM02_cancel_ticket",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Tạo ticket mức high để sửa lỗi không in được trên PR-404."
+        },
+        {
+          "role": "user",
+          "content": "Khoan đã, mình vừa khởi động lại máy in và in bình thường rồi."
+        },
+        {
+          "role": "user",
+          "content": "Hủy yêu cầu tạo ticket giúp mình, không cần làm gì nữa."
+        }
+      ],
+      "failure_type": "unnecessary_tool",
+      "expect": {
+        "no_tool": true,
+        "behavior": "answer_without_tool"
+      },
+      "metadata": {
+        "skill": "multiturn_cancellation",
+        "difficulty": "hard",
+        "what_it_tests": "Yeu cau huy o luot cuoi phai vo hieu hoa hanh dong tao ticket, khong goi tool."
+      }
+    },
+    {
+      "id": "GM03_correction_service",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Kiểm tra tình trạng dịch vụ VPN production."
+        },
+        {
+          "role": "user",
+          "content": "À mình gõ nhầm, kiểm tra dịch vụ Wi-Fi mới đúng."
+        },
+        {
+          "role": "user",
+          "content": "Xem Wi-Fi production nhé."
+        }
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "check_service_status",
+            "args": {
+              "service": "wifi",
+              "environment": "production"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_service_correction",
+        "difficulty": "medium",
+        "what_it_tests": "Dich vu sua o luot sau phai ghi de dich vu o luot dau (wifi thay vi vpn)."
+      }
+    },
+    {
+      "id": "GM04_parallel_two_devices",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Kiểm tra kết nối mạng của máy LT-204."
+        },
+        {
+          "role": "user",
+          "content": "Cả máy LT-240 cũng gặp tình trạng tương tự."
+        },
+        {
+          "role": "user",
+          "content": "Kiểm tra network của cả hai máy LT-204 và LT-240 để mình đối chiếu."
+        }
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "inspect_device",
+            "args": {
+              "asset_id": "LT-204",
+              "check": "network"
+            }
+          },
+          {
+            "name": "inspect_device",
+            "args": {
+              "asset_id": "LT-240",
+              "check": "network"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_parallel_devices",
+        "difficulty": "hard",
+        "what_it_tests": "Goi song song 2 inspect_device voi 2 ma asset khac nhau tu hoi thoai da luot."
+      }
+    },
+    {
+      "id": "GM05_stale_confirmation_modified",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Tôi xác nhận tạo ticket medium cho lỗi phần mềm trên LT-204."
+        },
+        {
+          "role": "user",
+          "content": "Đợi chút, đổi priority thành critical và thêm ghi chú nghi lộ mật khẩu."
+        },
+        {
+          "role": "user",
+          "content": "Xem lại thông tin mới trước khi gửi nhé."
+        }
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "yes_no"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "stale_confirmation_reset",
+        "difficulty": "hard",
+        "what_it_tests": "Khi payload thay doi thi xac nhan truoc do bi huy, phai hoi xac nhan lai."
+      }
+    }
+  ]
 }

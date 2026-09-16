@@ -40,17 +40,31 @@ class OpenAIProvider:
             raise RuntimeError(f"Missing API key env var: {self.api_key_env}")
 
         client = OpenAI(api_key=api_key, base_url=self.base_url)
+        import time
+        max_tokens_val = int(os.getenv("MAX_TOKENS", "500"))
         kwargs: dict[str, Any] = {
             "model": model or self.default_model,
             "messages": messages,
             "temperature": temperature,
+            "max_tokens": max_tokens_val,
         }
         if tools:
             kwargs["tools"] = tools
         if tool_choice is not None:
             kwargs["tool_choice"] = tool_choice
 
-        resp = client.chat.completions.create(**kwargs)
+        resp = None
+        for attempt in range(5):
+            try:
+                resp = client.chat.completions.create(**kwargs)
+                break
+            except Exception as exc:
+                err_msg = str(exc)
+                if ("429" in err_msg or "rate_limit" in err_msg.lower()) and attempt < 4:
+                    time.sleep(3 * (attempt + 1))
+                    continue
+                raise
+        assert resp is not None
         msg = resp.choices[0].message
         calls: list[ToolCall] = []
         for call in msg.tool_calls or []:
